@@ -92,6 +92,9 @@ class Game:
                 if column == 'z':
                     self.block = Border(self, j, i, 384, 96)
 
+                if column == '1':
+                    self.item = Item(self, j, i, 8, 32)
+
                 # Player
                 if column == 'P':
                     self.player = Player(self, j, i)
@@ -124,8 +127,9 @@ class Game:
 
         self.all_sprites = pygame.sprite.LayeredUpdates()
         self.blocks = pygame.sprite.LayeredUpdates()
-        self.enemies = pygame.sprite.LayeredUpdates()
-        self.attacks = pygame.sprite.LayeredUpdates()
+        self.items = pygame.sprite.LayeredUpdates()
+        #self.enemies = pygame.sprite.LayeredUpdates()
+        #self.attacks = pygame.sprite.LayeredUpdates()
 
         self.createTilemap()
 

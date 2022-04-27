@@ -1,4 +1,5 @@
 import pygame, math, random
+
 from window import *
 from config import *
 
@@ -95,28 +96,37 @@ class Player(pygame.sprite.Sprite):
             self.y_change += PLAYER_SPEED
             self.facing = 'down'
 
+
     def collide_blocks(self, direction):
         if direction == 'x':
-            hits = pygame.sprite.spritecollide(self, self.game.blocks, False)
-            if hits:
+            item_hits = pygame.sprite.spritecollide(self, self.game.items, True)
+            if item_hits:
+                pass
+
+            block_hits = pygame.sprite.spritecollide(self, self.game.blocks, False)
+            if block_hits:
                 if self.x_change > 0:
-                    self.rect.x = hits[0].rect.left - self.rect.width
+                    self.rect.x = block_hits[0].rect.left - self.rect.width
                     for sprite in self.game.all_sprites:
                         sprite.rect.x += PLAYER_SPEED
                 if self.x_change < 0:
-                    self.rect.x = hits[0].rect.right
+                    self.rect.x = block_hits[0].rect.right
                     for sprite in self.game.all_sprites:
                         sprite.rect.x -= PLAYER_SPEED
 
         if direction == 'y':
-            hits = pygame.sprite.spritecollide(self, self.game.blocks, False)
-            if hits:
+            item_hits = pygame.sprite.spritecollide(self, self.game.items, True)
+            if item_hits:
+                pass
+
+            block_hits = pygame.sprite.spritecollide(self, self.game.blocks, False)
+            if block_hits:
                 if self.y_change > 0:
-                    self.rect.y = hits[0].rect.top - self.rect.height
+                    self.rect.y = block_hits[0].rect.top - self.rect.height
                     for sprite in self.game.all_sprites:
                         sprite.rect.y += PLAYER_SPEED
                 if self.y_change < 0:
-                    self.rect.y = hits[0].rect.bottom
+                    self.rect.y = block_hits[0].rect.bottom
                     for sprite in self.game.all_sprites:
                         sprite.rect.y -= PLAYER_SPEED
 
@@ -193,11 +203,11 @@ class Border(pygame.sprite.Sprite):
         self.rect.y = self.y
 
 
-class Table(pygame.sprite.Sprite):
-    def __init__(self, game, x, y):
+class Item(pygame.sprite.Sprite):
+    def __init__(self, game, x, y, first, last):
         self.game = game
-        self._layer = BLOCK_LAYER
-        self.groups = self.game.all_sprites, self.game.blocks
+        self._layer = ITEM_LAYER
+        self.groups = self.game.all_sprites, self.game.items
         pygame.sprite.Sprite.__init__(self, self.groups)
 
         self.x = x * TILESIZE
