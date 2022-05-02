@@ -23,7 +23,7 @@ def Startup():
     fullscreen = False
     nickname = "Hero"
     gender = "Male"
-    sex = ('Male', 'Female')
+    sex = ('Kamarát', '(ky)')
 
     var3 = tk.StringVar(value=sex)
     var2 = tk.StringVar()
@@ -57,7 +57,7 @@ def Startup():
             nickname = var2.get()
 
         win.destroy()
-        player_info = [f'{nickname}', f'{gender}', True]
+        player_info = [True, f'{nickname}', f'{gender}']
 
     l_ns = tk.Label(win, text="Nickname:", bg='black', fg='white')
     l_ns.place(x=272, y=100)
@@ -71,14 +71,15 @@ def Startup():
                     fg='white', highlightthickness=0)
     gs.place(x=241, y=170)
 
-    #fs = tk.Checkbutton(win, text='Fullscreen', variable=var1, onvalue=1, offvalue=0,
-    #                    bg='black', fg='white', selectcolor='gray',
-    #                    activebackground='black', activeforeground='white', highlightcolor='black',
-    #                    highlightthickness=0)
-    #fs.place(x=263, y=250)
+    '''fs = tk.Checkbutton(win, text='Fullscreen', variable=var1, onvalue=1, offvalue=0,
+                        bg='black', fg='white', selectcolor='gray',
+                        activebackground='black', activeforeground='white', highlightcolor='black',
+                        highlightthickness=0)
+    fs.place(x=263, y=250)'''
 
     start = ttk.Button(text='Start', style='TButton', command=submit)
     start.place(x=220, y=300)
 
+    canvas.mainloop()
     win.mainloop()
     return player_info

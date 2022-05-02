@@ -1,12 +1,16 @@
-import pygame, math, random
+import pygame
+import random
+import math
 
 from window import *
 from config import *
+import config
 
 
 class Spritesheet:
     def __init__(self, file):
         self.sheet = pygame.image.load(file).convert()
+        self.current_level = CURRENT_LEVEL
 
     def get_sprite(self, x, y, width, height):
         sprite = pygame.Surface([width, height])
@@ -42,11 +46,14 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         self.movement()
         self.animate()
+        self.collide_teleport()
 
         self.rect.x += self.x_change
         self.collide_blocks('x')
+        self.collide_coin('x')
         self.rect.y += self.y_change
         self.collide_blocks('y')
+        self.collide_coin('y')
 
         self.x_change = 0
         self.y_change = 0
@@ -54,81 +61,92 @@ class Player(pygame.sprite.Sprite):
     def movement(self):
         keys = pygame.key.get_pressed()
 
-        if keys[pygame.K_LEFT]:
-            for sprite in self.game.all_sprites:
-                sprite.rect.x += PLAYER_SPEED
-            self.x_change -= PLAYER_SPEED
-            self.facing = 'left'
-        if keys[pygame.K_RIGHT]:
-            for sprite in self.game.all_sprites:
-                sprite.rect.x -= PLAYER_SPEED
-            self.x_change += PLAYER_SPEED
-            self.facing = 'right'
-        if keys[pygame.K_UP]:
-            for sprite in self.game.all_sprites:
-                sprite.rect.y += PLAYER_SPEED
-            self.y_change -= PLAYER_SPEED
-            self.facing = 'up'
-        if keys[pygame.K_DOWN]:
-            for sprite in self.game.all_sprites:
-                sprite.rect.y -= PLAYER_SPEED
-            self.y_change += PLAYER_SPEED
-            self.facing = 'down'
+        ADD_PLAYER_SPEED = 0
 
-        if keys[pygame.K_a]:
-            for sprite in self.game.all_sprites:
-                sprite.rect.x += PLAYER_SPEED
-            self.x_change -= PLAYER_SPEED
-            self.facing = 'left'
-        if keys[pygame.K_d]:
-            for sprite in self.game.all_sprites:
-                sprite.rect.x -= PLAYER_SPEED
-            self.x_change += PLAYER_SPEED
-            self.facing = 'right'
+        if config.STAMINA > 1:
+            if keys[pygame.K_LSHIFT]:
+                ADD_PLAYER_SPEED = 4
+                config.STAMINA -= 1
+        if not keys[pygame.K_LSHIFT]:
+            if config.STAMINA < 100:
+                if random.randint(1,8) == 3:
+                    config.STAMINA += 1
+
+
         if keys[pygame.K_w]:
             for sprite in self.game.all_sprites:
-                sprite.rect.y += PLAYER_SPEED
-            self.y_change -= PLAYER_SPEED
+                sprite.rect.y += PLAYER_SPEED + ADD_PLAYER_SPEED
+            self.y_change -= PLAYER_SPEED + ADD_PLAYER_SPEED
             self.facing = 'up'
         if keys[pygame.K_s]:
             for sprite in self.game.all_sprites:
-                sprite.rect.y -= PLAYER_SPEED
-            self.y_change += PLAYER_SPEED
+                sprite.rect.y -= PLAYER_SPEED + ADD_PLAYER_SPEED
+            self.y_change += PLAYER_SPEED + ADD_PLAYER_SPEED
             self.facing = 'down'
+        if keys[pygame.K_a]:
+            for sprite in self.game.all_sprites:
+                sprite.rect.x += PLAYER_SPEED + ADD_PLAYER_SPEED
+            self.x_change -= PLAYER_SPEED + ADD_PLAYER_SPEED
+            self.facing = 'left'
+        if keys[pygame.K_d]:
+            for sprite in self.game.all_sprites:
+                sprite.rect.x -= PLAYER_SPEED + ADD_PLAYER_SPEED
+            self.x_change += PLAYER_SPEED + ADD_PLAYER_SPEED
+            self.facing = 'right'
 
+
+    def collide_teleport(self):
+        tp_hits = pygame.sprite.spritecollide(self, self.game.teleport, False)
+
+        if tp_hits:
+            if LEVEL_DICT[config.CURRENT_LEVEL]['goto'][self.facing] == '':
+                config.CURRENT_LEVEL = 'lobby'
+            else:
+                config.CURRENT_LEVEL = LEVEL_DICT[config.CURRENT_LEVEL]['goto'][self.facing]
+
+            new_level_map = LEVEL_DICT[config.CURRENT_LEVEL]['map']
+
+            self.game.first_run = True
+            self.game.animateOut()
+            self.game.new(new_level_map)
+
+    def collide_coin(self, direction):
+        if direction == 'x' or direction == 'y':
+            coin_hits = pygame.sprite.spritecollide(self, self.game.coinsl, True)
+            if coin_hits:
+                config.COINS += random.randint(5, 20)
 
     def collide_blocks(self, direction):
-        if direction == 'x':
-            item_hits = pygame.sprite.spritecollide(self, self.game.items, True)
-            if item_hits:
-                pass
+        keys = pygame.key.get_pressed()
+        
+        if keys[pygame.K_LSHIFT]:
+            ADD_PLAYER_SPEED = 2
+        if not keys[pygame.K_LSHIFT]:
+            ADD_PLAYER_SPEED = 0
 
+        if direction == 'x':
             block_hits = pygame.sprite.spritecollide(self, self.game.blocks, False)
             if block_hits:
                 if self.x_change > 0:
                     self.rect.x = block_hits[0].rect.left - self.rect.width
                     for sprite in self.game.all_sprites:
-                        sprite.rect.x += PLAYER_SPEED
+                        sprite.rect.x += PLAYER_SPEED + ADD_PLAYER_SPEED
                 if self.x_change < 0:
                     self.rect.x = block_hits[0].rect.right
                     for sprite in self.game.all_sprites:
-                        sprite.rect.x -= PLAYER_SPEED
+                        sprite.rect.x -= PLAYER_SPEED + ADD_PLAYER_SPEED
 
         if direction == 'y':
-            item_hits = pygame.sprite.spritecollide(self, self.game.items, True)
-            if item_hits:
-                pass
-
             block_hits = pygame.sprite.spritecollide(self, self.game.blocks, False)
             if block_hits:
                 if self.y_change > 0:
                     self.rect.y = block_hits[0].rect.top - self.rect.height
                     for sprite in self.game.all_sprites:
-                        sprite.rect.y += PLAYER_SPEED
+                        sprite.rect.y += PLAYER_SPEED + ADD_PLAYER_SPEED
                 if self.y_change < 0:
                     self.rect.y = block_hits[0].rect.bottom
                     for sprite in self.game.all_sprites:
-                        sprite.rect.y -= PLAYER_SPEED
+                        sprite.rect.y -= PLAYER_SPEED + ADD_PLAYER_SPEED
 
     def animate(self):
         down_animations = [self.game.character_spritesheet.get_sprite(3, 2, self.width, self.height),
@@ -203,11 +221,11 @@ class Border(pygame.sprite.Sprite):
         self.rect.y = self.y
 
 
-class Item(pygame.sprite.Sprite):
-    def __init__(self, game, x, y, first, last):
+class Coin(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
         self.game = game
         self._layer = ITEM_LAYER
-        self.groups = self.game.all_sprites, self.game.items
+        self.groups = self.game.all_sprites, self.game.coinsl
         pygame.sprite.Sprite.__init__(self, self.groups)
 
         self.x = x * TILESIZE
@@ -215,7 +233,7 @@ class Item(pygame.sprite.Sprite):
         self.width = TILESIZE
         self.height = TILESIZE
 
-        self.image = self.game.terrain_spritesheet.get_sprite(960, 448, self.width, self.height)
+        self.image = self.game.terrain_spritesheet.get_sprite(448, 224, self.width, self.height)
 
         self.rect = self.image.get_rect()
         self.rect.x = self.x
@@ -224,6 +242,7 @@ class Item(pygame.sprite.Sprite):
 
 class Ground(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
+        self.graund = 0
         self.game = game
         self._layer = GROUND_LAYER
         self.groups = self.game.all_sprites
@@ -235,6 +254,25 @@ class Ground(pygame.sprite.Sprite):
         self.height = TILESIZE
 
         self.image = self.game.floor_spritesheet.get_sprite(194, 341, self.width, self.height)
+
+        self.rect = self.image.get_rect()
+        self.rect.x = self.x
+        self.rect.y = self.y
+
+
+class Teleport(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.game = game
+        self._layer = ITEM_LAYER
+        self.groups = self.game.all_sprites, self.game.teleport
+        pygame.sprite.Sprite.__init__(self, self.groups)
+
+        self.x = x * TILESIZE
+        self.y = y * TILESIZE
+        self.width = TILESIZE
+        self.height = TILESIZE
+
+        self.image = self.game.terrain_spritesheet.get_sprite(224, 736, self.width, self.height)
 
         self.rect = self.image.get_rect()
         self.rect.x = self.x

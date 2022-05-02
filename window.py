@@ -1,26 +1,38 @@
-import pygame, pygame.camera, moviepy.editor
+import random
+
+import pygame, moviepy.editor
+from pypresence import Presence
 import sys, time
 
+import config
 from config import *
 from sprites import *
 
 class Game:
-    def __init__(self, fsc):
+    def __init__(self, player_data):
         pygame.init()
         pygame.mixer.init()
-        pygame.camera.init()
+
+        try:
+            self.DP = Presence('920391194515746856')
+            self.DP.connect()
+        except:
+            pass
+
+        self.start_ts = time.time()
 
         title_icon = pygame.image.load('resources/title/icon.png')
         pygame.display.set_caption('AstroCore')
         pygame.display.set_icon(title_icon)
 
-        self.fullscreen = fsc
+        PLAYER_NAME = player_data[1]
+        PLAYER_SEX = player_data[2]
+
+        self.fullscreen = player_data[0]
         if not self.fullscreen:
             self.screen = pygame.display.set_mode((WIN_WIDTH, WIN_WIDTH))
         elif self.fullscreen:
             self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-
-        self.font = pygame.font.SysFont("Arial", 18)
 
         self.secret_intro = random.randint(1, 100)
         if self.secret_intro == 1:
@@ -43,9 +55,18 @@ class Game:
         self.clock = pygame.time.Clock()
         self.running = True
         self.first_run = True
+        self.music_run = False
 
-    def createTilemap(self):
-        for i, row in enumerate(tilemap):
+    def drawText(self, text, size, color, x, y):
+        font = pygame.font.Font("resources/font/Pixellettersfull-BnJ5.ttf", size)
+
+        text_surf = font.render(str(text), True, color)
+        text_rect = text_surf.get_rect(x=x, y=y)
+
+        self.screen.blit(text_surf, text_rect)
+
+    def createTilemap(self, level):
+        for i, row in enumerate(level):
             if self.fullscreen:
                 i += 10
             for j, column in enumerate(row):
@@ -92,23 +113,49 @@ class Game:
                 if column == 'z':
                     self.block = Border(self, j, i, 384, 96)
 
-                if column == '1':
-                    self.item = Item(self, j, i, 8, 32)
+                # Coins
+                if column == '.':
+                    try:
+                        if COINS > 300:
+                            randNum = 30
+                        else:
+                            randNum = 50
+                    except:
+                        randNum = 30
+                    if random.randint(1,randNum) == 3:
+                        self.coin = Coin(self, j, i)
+
+                # Level Teleport
+                if column == '1' or column == '2':
+                    self.item = Teleport(self, j, i)
 
                 # Player
                 if column == 'P':
                     self.player = Player(self, j, i)
 
+
+    def animateOut(self):
+        time.sleep(0.1)
+        self.black_screen.set_alpha(0)
+
+        for i in range(0, 255, 5):
+            self.screen.fill(BLACK)
+            self.all_sprites.draw(self.screen)
+            self.clock.tick(FPS)
+            self.screen.blit(self.overlay_img, (0, 0))
+
+            self.black_screen.set_alpha(i)
+            self.screen.blit(self.black_screen, (0, 0))
+            pygame.display.update()
+            time.sleep(0.00005)
+        self.screen.blit(self.black_screen, (0, 0))
+        self.black_screen.set_alpha(100)
+
     def animateIn(self):
-        time.sleep(0.5)
+        time.sleep(0.1)
         self.black_screen.set_alpha(255)
 
-        if self.secret_intro != 50:
-            pygame.mixer.Channel(0).fadeout(3000)
-        pygame.mixer.Channel(1).play(pygame.mixer.Sound('resources/sounds/background.mp3'), loops=-1, fade_ms=4000)
-        pygame.mixer.Channel(1).set_volume(0.05)
-
-        for i in range(255, 0, -1):
+        for i in range(255, 0, -5):
             self.screen.fill(BLACK)
             self.all_sprites.draw(self.screen)
             self.clock.tick(FPS)
@@ -122,7 +169,7 @@ class Game:
         self.black_screen.set_alpha(100)
         self.first_run = False
 
-    def new(self):
+    def new(self, level):
         self.playing = True
 
         self.all_sprites = pygame.sprite.LayeredUpdates()
@@ -130,8 +177,10 @@ class Game:
         self.items = pygame.sprite.LayeredUpdates()
         #self.enemies = pygame.sprite.LayeredUpdates()
         #self.attacks = pygame.sprite.LayeredUpdates()
+        self.coinsl = pygame.sprite.LayeredUpdates()
+        self.teleport = pygame.sprite.LayeredUpdates()
 
-        self.createTilemap()
+        self.createTilemap(level)
 
     def events(self):
         for event in pygame.event.get():
@@ -155,7 +204,20 @@ class Game:
         self.screen.blit(self.overlay_img, (0, 0))
 
         if self.first_run:
+            if not self.music_run:
+                if self.secret_intro != 50:
+                    pygame.mixer.Channel(0).fadeout(3000)
+                pygame.mixer.Channel(1).play(pygame.mixer.Sound('resources/sounds/background.mp3'), loops=-1, fade_ms=4000)
+                pygame.mixer.Channel(1).set_volume(0.05)
+                self.music_run = True
             self.animateIn()
+
+
+        self.drawText(f'HP: {int(config.HP)}', 42, DARKGREEN, 10, 10)
+        self.drawText(f'Stamina: {int(config.STAMINA)}', 42, DARKGREEN, 10, 40)
+
+        self.drawText(f'Location: {config.LEVEL_DICT[config.CURRENT_LEVEL]["title"]}', 32, DARKGREEN, 10, 110)
+        self.drawText(f'Coins on you: {config.COINS}', 32, DARKGREEN, 10, 140)
 
         pygame.display.update()
 
@@ -166,9 +228,9 @@ class Game:
             self.draw()
         self.running = False
 
+    def discord_presence(self):
+        print(self.DP.update(state="Astrocore",
+                             details="Wondering in spaceship"))
 
     def game_over(self):
-        pass
-
-    def intro_screen(self):
         pass
