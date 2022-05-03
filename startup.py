@@ -23,7 +23,7 @@ def Startup():
     fullscreen = False
     nickname = "Hero"
     gender = "Male"
-    sex = ('Kamarát', '(ky)')
+    sex = ('Male', 'Woman')
 
     var3 = tk.StringVar(value=sex)
     var2 = tk.StringVar()

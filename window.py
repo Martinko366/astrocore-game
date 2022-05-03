@@ -40,8 +40,6 @@ class Game:
             video.preview()
         else:
             video = moviepy.editor.VideoFileClip("resources/cutscenes/intro.mp4")
-            pygame.mixer.Channel(0).play(pygame.mixer.Sound('resources/sounds/intro.mp3'), fade_ms=3000)
-            pygame.mixer.Channel(0).set_volume(0.3)
             video.preview()
 
         self.character_spritesheet = Spritesheet('resources/img/character.png')
@@ -49,11 +47,14 @@ class Game:
         self.floor_spritesheet = Spritesheet('resources/img/floor.png')
         self.border_spritesheet = Spritesheet('resources/img/border.png')
 
+        self.coin_texture = Spritesheet('resources/img/coin.png')
+
         self.overlay_img = pygame.image.load('resources/img/overlay.png').convert_alpha()
         self.black_screen = pygame.image.load('resources/img/blackscreen.png').convert_alpha()
 
         self.clock = pygame.time.Clock()
         self.running = True
+
         self.first_run = True
         self.music_run = False
 
@@ -205,13 +206,12 @@ class Game:
 
         if self.first_run:
             if not self.music_run:
-                if self.secret_intro != 50:
-                    pygame.mixer.Channel(0).fadeout(3000)
-                pygame.mixer.Channel(1).play(pygame.mixer.Sound('resources/sounds/background.mp3'), loops=-1, fade_ms=4000)
-                pygame.mixer.Channel(1).set_volume(0.05)
+                pygame.mixer.Channel(1).play(pygame.mixer.Sound(f'resources/sounds/{config.LEVEL_DICT[config.CURRENT_LEVEL]["music"]}.wav'), loops=-1, fade_ms=2000)
+                pygame.mixer.Channel(1).set_volume(0.4)
                 self.music_run = True
-            self.animateIn()
+                self.first_run = False
 
+            self.animateIn()
 
         self.drawText(f'HP: {int(config.HP)}', 42, DARKGREEN, 10, 10)
         self.drawText(f'Stamina: {int(config.STAMINA)}', 42, DARKGREEN, 10, 40)

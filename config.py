@@ -112,6 +112,7 @@ level_core_map = [
 LEVEL_DICT = {
                 'lobby': {'title':'Lobby',
                           'found':True,
+                          'music':'lobby_amb',
                           'map':level_lobby_map,
                              'goto':{'up':'cafe',
                                      'left':'cafe',
@@ -120,6 +121,7 @@ LEVEL_DICT = {
 
                 'cafe': {'title':'Cafe',
                          'found':False,
+                         'music':'cafe_amb',
                          'map':level_cafe_map,
                              'goto':{'up':'core',
                                      'left':'lobby',
@@ -128,6 +130,7 @@ LEVEL_DICT = {
 
                 'core': {'title':'Core',
                          'found':False,
+                         'music':'core_amb',
                          'map':level_core_map,
                             'goto':{'up':'cafe',
                                     'left':'cafe',

@@ -107,6 +107,10 @@ class Player(pygame.sprite.Sprite):
             new_level_map = LEVEL_DICT[config.CURRENT_LEVEL]['map']
 
             self.game.first_run = True
+            self.game.music_run = False
+
+            pygame.mixer.Channel(1).fadeout(1000)
+
             self.game.animateOut()
             self.game.new(new_level_map)
 
@@ -233,7 +237,7 @@ class Coin(pygame.sprite.Sprite):
         self.width = TILESIZE
         self.height = TILESIZE
 
-        self.image = self.game.terrain_spritesheet.get_sprite(448, 224, self.width, self.height)
+        self.image = self.game.coin_texture.get_sprite(0, 0, self.width, self.height)
 
         self.rect = self.image.get_rect()
         self.rect.x = self.x
