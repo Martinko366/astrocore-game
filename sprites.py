@@ -72,7 +72,6 @@ class Player(pygame.sprite.Sprite):
                 if random.randint(1,8) == 3:
                     config.STAMINA += 1
 
-
         if keys[pygame.K_w]:
             for sprite in self.game.all_sprites:
                 sprite.rect.y += PLAYER_SPEED + ADD_PLAYER_SPEED
@@ -118,6 +117,8 @@ class Player(pygame.sprite.Sprite):
         if direction == 'x' or direction == 'y':
             coin_hits = pygame.sprite.spritecollide(self, self.game.coinsl, True)
             if coin_hits:
+                pygame.mixer.Channel(2).play(pygame.mixer.Sound('resources/sounds/get_coin.wav'))
+                pygame.mixer.Channel(2).set_volume(0.2)
                 config.COINS += random.randint(5, 20)
 
     def collide_blocks(self, direction):
