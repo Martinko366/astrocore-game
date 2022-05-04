@@ -26,8 +26,8 @@ class Game:
         pygame.display.set_caption('AstroCore')
         pygame.display.set_icon(title_icon)
 
-        PLAYER_NAME = player_data[1]
-        PLAYER_SEX = player_data[2]
+        config.PLAYER_NAME = player_data[1]
+        config.PLAYER_SEX = player_data[2]
 
         self.fullscreen = player_data[0]
         if not self.fullscreen:
@@ -51,7 +51,7 @@ class Game:
         self.overlay_img = pygame.image.load('resources/img/overlay.png').convert_alpha()
         self.black_screen = pygame.image.load('resources/img/blackscreen.png').convert_alpha()
 
-        self.overlay_text = a
+        self.a = a
 
         self.clock = pygame.time.Clock()
         self.running = True
@@ -59,11 +59,13 @@ class Game:
         self.first_run = True
         self.music_run = False
 
-    def drawText(self, text, size, color, x, y):
-        font = pygame.font.Font("resources/font/Pixellettersfull-BnJ5.ttf", size)
+    def drawText(self, text, size, color, x, y, font=config.FONT1, alpha=255):
+        font = pygame.font.Font(font, size)
 
         text_surf = font.render(str(text), True, color)
         text_rect = text_surf.get_rect(x=x, y=y)
+
+        text_surf.set_alpha(alpha)
 
         self.screen.blit(text_surf, text_rect)
 
@@ -141,13 +143,13 @@ class Game:
         pygame.mixer.Channel(3).set_volume(0.4)
         pygame.mixer.Channel(3).play(pygame.mixer.Sound('resources/sounds/alert.wav'))
 
-        a.newLevel_animateIn(self)
+        self.a.newLevel_animateIn(self)
 
     def animateOut(self):
-        a.screen_animateOut(self)
+        self.a.screen_animateOut(self)
 
     def animateIn(self):
-        a.screen_animateIn(self)
+        self.a.screen_animateIn(self)
 
     def new(self, level):
         self.playing = True
@@ -184,7 +186,7 @@ class Game:
 
         self.screen.blit(self.overlay_img, (0, 0))
 
-        a.overlayStatus_texts(self)
+        self.a.overlayStatus_texts(self)
 
         if not config.LEVEL_DICT[config.CURRENT_LEVEL]['found']:
             self.animateIn_level()

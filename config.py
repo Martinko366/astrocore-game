@@ -25,7 +25,8 @@ BLUE = (0, 0, 255)
 BLACK = (0, 0, 0)
 DARKGREEN = (30, 135, 61)
 
-TEST = 8
+FONT1 = "resources/font/Pixellettersfull-BnJ5.ttf"
+FONT2 = "resources/font/NoizeSportFreeVertionRegular.ttf"
 
 #   = Void
 # . = Ground
@@ -40,8 +41,8 @@ TEST = 8
 # X = Border b2N / x = Border b2n
 # C = Border B2N / c = Border B2n
 
-# 1, 2, 3, 4 = Teleports to other level
-# 0 = Item (temporary)
+# 1 = Teleport to Right-Left / 2 = Teleport to Up-Down
+# 3 = Locked Teleports
 
 level_lobby_map = [
     'VBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBM ',
