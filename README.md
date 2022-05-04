@@ -2,7 +2,7 @@
 
 
 ### What's this?
-Pure Python top-down RPG game made in PyGame library.
+Pure Python top-down RPG game made in PyGame library. Currently only works on Windows 7, 8, 10 and 11.
 
 ### What state is it in?
 Currently, this game is WIP - Public Beta, but I'm working on adding tons of new modules. I'm also constantly working on bug fixes.
