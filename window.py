@@ -5,6 +5,7 @@ from pypresence import Presence
 import sys, time
 
 import config
+from animations import Animate as a
 from config import *
 from sprites import *
 
@@ -47,10 +48,10 @@ class Game:
         self.floor_spritesheet = Spritesheet('resources/img/floor.png')
         self.border_spritesheet = Spritesheet('resources/img/border.png')
 
-        self.coin_texture = Spritesheet('resources/img/coin.png')
-
         self.overlay_img = pygame.image.load('resources/img/overlay.png').convert_alpha()
         self.black_screen = pygame.image.load('resources/img/blackscreen.png').convert_alpha()
+
+        self.overlay_text = a
 
         self.clock = pygame.time.Clock()
         self.running = True
@@ -118,123 +119,35 @@ class Game:
                 if column == '.':
                     try:
                         if COINS > 300:
-                            randNum = 30
+                            randNum = 80
                         else:
-                            randNum = 50
+                            randNum = 60
                     except:
-                        randNum = 30
-                    if random.randint(1,randNum) == 3:
+                        randNum = 80
+                    if random.randint(1,randNum) == 10:
                         self.coin = Coin(self, j, i)
 
                 # Level Teleport
-                if column == '1' or column == '2':
-                    self.item = Teleport(self, j, i)
+                if column == '1':
+                    self.item = Teleport_RL(self, j, i)
+                if column == '2':
+                    self.item = Teleport_UD(self, j, i)
 
                 # Player
                 if column == 'P':
                     self.player = Player(self, j, i)
 
     def animateIn_level(self):
+        pygame.mixer.Channel(3).set_volume(0.4)
         pygame.mixer.Channel(3).play(pygame.mixer.Sound('resources/sounds/alert.wav'))
 
-        for i in range(0, 255, 5):
-            self.screen.fill(BLACK)
-
-            font = pygame.font.Font("resources/font/Pixellettersfull-BnJ5.ttf", 42)
-            text_surf = font.render(str('You found new location!'), True, (30, 135, 61)).convert_alpha()
-            text_rect = text_surf.get_rect(center=(1920 // 2, 500))
-
-            text_surf.set_alpha(i)
-            self.screen.blit(text_surf, text_rect)
-
-            pygame.display.update()
-            time.sleep(0.0005)
-        time.sleep(1)
-        for i in range(0, 255, 5):
-            self.screen.fill(BLACK)
-
-            font = pygame.font.Font("resources/font/Pixellettersfull-BnJ5.ttf", 42)
-            text_surf = font.render(str('You found new location!'), True, (30, 135, 61)).convert_alpha()
-            text_rect = text_surf.get_rect(center=(1920 // 2, 500))
-            self.screen.blit(text_surf, text_rect)
-
-            font = pygame.font.Font("resources/font/Pixellettersfull-BnJ5.ttf", 36)
-            text_surf = font.render(str(f'{config.LEVEL_DICT[config.CURRENT_LEVEL]["title"]}'), True,
-                                    (30, 135, 61)).convert_alpha()
-            text_rect = text_surf.get_rect(center=(1920 // 2, 540))
-
-            text_surf.set_alpha(i)
-            self.screen.blit(text_surf, text_rect)
-
-            pygame.display.update()
-            time.sleep(0.0005)
-        time.sleep(2)
-        for i in range(255, 0, -5):
-            self.screen.fill(BLACK)
-
-            font1 = pygame.font.Font("resources/font/Pixellettersfull-BnJ5.ttf", 42)
-            text_surf1 = font1.render(str('You found new location!'), True, (30, 135, 61)).convert_alpha()
-            text_rect1 = text_surf1.get_rect(center=(1920 // 2, 500))
-
-            font = pygame.font.Font("resources/font/Pixellettersfull-BnJ5.ttf", 36)
-            text_surf = font.render(str(f'{config.LEVEL_DICT[config.CURRENT_LEVEL]["title"]}'), True,
-                                    (30, 135, 61)).convert_alpha()
-            text_rect = text_surf.get_rect(center=(1920 // 2, 540))
-
-            text_surf.set_alpha(i)
-            text_surf1.set_alpha(i)
-            self.screen.blit(text_surf, text_rect)
-            self.screen.blit(text_surf1, text_rect1)
-
-            pygame.display.update()
-            time.sleep(0.0005)
+        a.newLevel_animateIn(self)
 
     def animateOut(self):
-        time.sleep(0.1)
-        self.black_screen.set_alpha(0)
-
-        for i in range(0, 255, 5):
-            self.screen.fill(BLACK)
-            self.all_sprites.draw(self.screen)
-            self.clock.tick(FPS)
-            self.screen.blit(self.overlay_img, (0, 0))
-
-            self.drawText(f'HP: {int(config.HP)}', 42, DARKGREEN, 10, 10)
-            self.drawText(f'Stamina: {int(config.STAMINA)}', 42, DARKGREEN, 10, 40)
-
-            self.drawText(f'Location: {config.LEVEL_DICT[config.CURRENT_LEVEL]["title"]}', 32, DARKGREEN, 10, 110)
-            self.drawText(f'Coins on you: {config.COINS}', 32, DARKGREEN, 10, 140)
-
-            self.black_screen.set_alpha(i)
-            self.screen.blit(self.black_screen, (0, 0))
-            pygame.display.update()
-            time.sleep(0.00005)
-        self.screen.blit(self.black_screen, (0, 0))
-        self.black_screen.set_alpha(100)
+        a.screen_animateOut(self)
 
     def animateIn(self):
-        time.sleep(0.1)
-        self.black_screen.set_alpha(255)
-
-        for i in range(255, 0, -5):
-            self.screen.fill(BLACK)
-            self.all_sprites.draw(self.screen)
-            self.clock.tick(FPS)
-            self.screen.blit(self.overlay_img, (0, 0))
-
-            self.drawText(f'HP: {int(config.HP)}', 42, DARKGREEN, 10, 10)
-            self.drawText(f'Stamina: {int(config.STAMINA)}', 42, DARKGREEN, 10, 40)
-
-            self.drawText(f'Location: {config.LEVEL_DICT[config.CURRENT_LEVEL]["title"]}', 32, DARKGREEN, 10, 110)
-            self.drawText(f'Coins on you: {config.COINS}', 32, DARKGREEN, 10, 140)
-
-            self.black_screen.set_alpha(i)
-            self.screen.blit(self.black_screen, (0, 0))
-            pygame.display.update()
-            time.sleep(0.00005)
-        self.screen.blit(self.black_screen, (0, 0))
-        self.black_screen.set_alpha(100)
-        self.first_run = False
+        a.screen_animateIn(self)
 
     def new(self, level):
         self.playing = True
@@ -245,7 +158,8 @@ class Game:
         #self.enemies = pygame.sprite.LayeredUpdates()
         #self.attacks = pygame.sprite.LayeredUpdates()
         self.coinsl = pygame.sprite.LayeredUpdates()
-        self.teleport = pygame.sprite.LayeredUpdates()
+        self.teleport_ud = pygame.sprite.LayeredUpdates()
+        self.teleport_rl = pygame.sprite.LayeredUpdates()
 
         self.createTilemap(level)
 
@@ -270,11 +184,7 @@ class Game:
 
         self.screen.blit(self.overlay_img, (0, 0))
 
-        self.drawText(f'HP: {int(config.HP)}', 42, DARKGREEN, 10, 10)
-        self.drawText(f'Stamina: {int(config.STAMINA)}', 42, DARKGREEN, 10, 40)
-
-        self.drawText(f'Location: {config.LEVEL_DICT[config.CURRENT_LEVEL]["title"]}', 32, DARKGREEN, 10, 110)
-        self.drawText(f'Coins on you: {config.COINS}', 32, DARKGREEN, 10, 140)
+        a.overlayStatus_texts(self)
 
         if not config.LEVEL_DICT[config.CURRENT_LEVEL]['found']:
             self.animateIn_level()

@@ -61,50 +61,67 @@ class Player(pygame.sprite.Sprite):
     def movement(self):
         keys = pygame.key.get_pressed()
 
-        ADD_PLAYER_SPEED = 0
+        config.ADD_PLAYER_SPEED = 0
 
         if config.STAMINA > 1:
             if keys[pygame.K_LSHIFT]:
-                ADD_PLAYER_SPEED = 4
+                config.ADD_PLAYER_SPEED = 3
                 config.STAMINA -= 1
         if not keys[pygame.K_LSHIFT]:
+            config.ADD_PLAYER_SPEED = 0
             if config.STAMINA < 100:
                 if random.randint(1,8) == 3:
                     config.STAMINA += 1
 
         if keys[pygame.K_w]:
             for sprite in self.game.all_sprites:
-                sprite.rect.y += PLAYER_SPEED + ADD_PLAYER_SPEED
-            self.y_change -= PLAYER_SPEED + ADD_PLAYER_SPEED
+                sprite.rect.y += PLAYER_SPEED + config.ADD_PLAYER_SPEED
+            self.y_change -= PLAYER_SPEED + config.ADD_PLAYER_SPEED
             self.facing = 'up'
         if keys[pygame.K_s]:
             for sprite in self.game.all_sprites:
-                sprite.rect.y -= PLAYER_SPEED + ADD_PLAYER_SPEED
-            self.y_change += PLAYER_SPEED + ADD_PLAYER_SPEED
+                sprite.rect.y -= PLAYER_SPEED + config.ADD_PLAYER_SPEED
+            self.y_change += PLAYER_SPEED + config.ADD_PLAYER_SPEED
             self.facing = 'down'
         if keys[pygame.K_a]:
             for sprite in self.game.all_sprites:
-                sprite.rect.x += PLAYER_SPEED + ADD_PLAYER_SPEED
-            self.x_change -= PLAYER_SPEED + ADD_PLAYER_SPEED
+                sprite.rect.x += PLAYER_SPEED + config.ADD_PLAYER_SPEED
+            self.x_change -= PLAYER_SPEED + config.ADD_PLAYER_SPEED
             self.facing = 'left'
         if keys[pygame.K_d]:
             for sprite in self.game.all_sprites:
-                sprite.rect.x -= PLAYER_SPEED + ADD_PLAYER_SPEED
-            self.x_change += PLAYER_SPEED + ADD_PLAYER_SPEED
+                sprite.rect.x -= PLAYER_SPEED + config.ADD_PLAYER_SPEED
+            self.x_change += PLAYER_SPEED + config.ADD_PLAYER_SPEED
             self.facing = 'right'
 
 
     def collide_teleport(self):
-        tp_hits = pygame.sprite.spritecollide(self, self.game.teleport, False)
+        keys = pygame.key.get_pressed()
 
-        if tp_hits:
+        rl_hits = pygame.sprite.spritecollide(self, self.game.teleport_rl, False)
+        ud_hits = pygame.sprite.spritecollide(self, self.game.teleport_ud, False)
+
+        if rl_hits:
             if LEVEL_DICT[config.CURRENT_LEVEL]['goto'][self.facing] == '':
-                config.CURRENT_LEVEL = 'lobby'
+                config.CURRENT_LEVEL = config.CURRENT_LEVEL
             else:
                 config.CURRENT_LEVEL = LEVEL_DICT[config.CURRENT_LEVEL]['goto'][self.facing]
 
             new_level_map = LEVEL_DICT[config.CURRENT_LEVEL]['map']
 
+        if ud_hits:
+            place = 'up'
+            if keys[pygame.K_s]:
+                place = 'down'
+
+            if LEVEL_DICT[config.CURRENT_LEVEL]['goto'][place] == '':
+                config.CURRENT_LEVEL = config.CURRENT_LEVEL
+            else:
+                config.CURRENT_LEVEL = LEVEL_DICT[config.CURRENT_LEVEL]['goto'][place]
+
+            new_level_map = LEVEL_DICT[config.CURRENT_LEVEL]['map']
+
+        if rl_hits or ud_hits:
             self.game.first_run = True
             self.game.music_run = False
 
@@ -122,24 +139,17 @@ class Player(pygame.sprite.Sprite):
                 config.COINS += random.randint(5, 20)
 
     def collide_blocks(self, direction):
-        keys = pygame.key.get_pressed()
-        
-        if keys[pygame.K_LSHIFT]:
-            ADD_PLAYER_SPEED = 2
-        if not keys[pygame.K_LSHIFT]:
-            ADD_PLAYER_SPEED = 0
-
         if direction == 'x':
             block_hits = pygame.sprite.spritecollide(self, self.game.blocks, False)
             if block_hits:
                 if self.x_change > 0:
                     self.rect.x = block_hits[0].rect.left - self.rect.width
                     for sprite in self.game.all_sprites:
-                        sprite.rect.x += PLAYER_SPEED + ADD_PLAYER_SPEED
+                        sprite.rect.x += PLAYER_SPEED+config.ADD_PLAYER_SPEED
                 if self.x_change < 0:
                     self.rect.x = block_hits[0].rect.right
                     for sprite in self.game.all_sprites:
-                        sprite.rect.x -= PLAYER_SPEED + ADD_PLAYER_SPEED
+                        sprite.rect.x -= PLAYER_SPEED+config.ADD_PLAYER_SPEED
 
         if direction == 'y':
             block_hits = pygame.sprite.spritecollide(self, self.game.blocks, False)
@@ -147,11 +157,11 @@ class Player(pygame.sprite.Sprite):
                 if self.y_change > 0:
                     self.rect.y = block_hits[0].rect.top - self.rect.height
                     for sprite in self.game.all_sprites:
-                        sprite.rect.y += PLAYER_SPEED + ADD_PLAYER_SPEED
+                        sprite.rect.y += PLAYER_SPEED+config.ADD_PLAYER_SPEED
                 if self.y_change < 0:
                     self.rect.y = block_hits[0].rect.bottom
                     for sprite in self.game.all_sprites:
-                        sprite.rect.y -= PLAYER_SPEED + ADD_PLAYER_SPEED
+                        sprite.rect.y -= PLAYER_SPEED+config.ADD_PLAYER_SPEED
 
     def animate(self):
         down_animations = [self.game.character_spritesheet.get_sprite(3, 2, self.width, self.height),
@@ -238,7 +248,8 @@ class Coin(pygame.sprite.Sprite):
         self.width = TILESIZE
         self.height = TILESIZE
 
-        self.image = self.game.coin_texture.get_sprite(0, 0, self.width, self.height)
+        coin_texture = Spritesheet(f'resources/img/{random.choice(["coin1", "coin2", "coin3", "coin4"])}.png')
+        self.image = coin_texture.get_sprite(-16, -16, self.width, self.height)
 
         self.rect = self.image.get_rect()
         self.rect.x = self.x
@@ -265,11 +276,29 @@ class Ground(pygame.sprite.Sprite):
         self.rect.y = self.y
 
 
-class Teleport(pygame.sprite.Sprite):
+class Teleport_RL(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
         self.game = game
         self._layer = ITEM_LAYER
-        self.groups = self.game.all_sprites, self.game.teleport
+        self.groups = self.game.all_sprites, self.game.teleport_rl
+        pygame.sprite.Sprite.__init__(self, self.groups)
+
+        self.x = x * TILESIZE
+        self.y = y * TILESIZE
+        self.width = TILESIZE
+        self.height = TILESIZE
+
+        self.image = self.game.terrain_spritesheet.get_sprite(224, 736, self.width, self.height)
+
+        self.rect = self.image.get_rect()
+        self.rect.x = self.x
+        self.rect.y = self.y
+
+class Teleport_UD(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.game = game
+        self._layer = ITEM_LAYER
+        self.groups = self.game.all_sprites, self.game.teleport_ud
         pygame.sprite.Sprite.__init__(self, self.groups)
 
         self.x = x * TILESIZE
