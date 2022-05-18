@@ -120,14 +120,19 @@ class Game:
                 # Coins
                 if column == '.':
                     try:
-                        if COINS > 300:
-                            randNum = 80
+                        if COINS > 500:
+                            randNum = 100
                         else:
-                            randNum = 60
+                            randNum = 80
                     except:
                         randNum = 80
                     if random.randint(1,randNum) == 10:
                         self.coin = Coin(self, j, i)
+
+                # Final Key
+                if config.CURRENT_LEVEL == 'lobby':
+                    if column == '3':
+                        self.item = Key(self, j, i)
 
                 # Level Teleport
                 if column == '1':
@@ -136,8 +141,32 @@ class Game:
                     self.item = Teleport_UD(self, j, i)
 
                 # Player
-                if column == 'P':
-                    self.player = Player(self, j, i)
+                prev = config.LAST_LEVEL
+                this = config.LEVEL_DICT[config.CURRENT_LEVEL]['goto']
+
+                if column == 'P' or column == 'ľ' or column == 'š' or column == 'č' or column == 'ť':
+                    if prev == '' and column == 'P':
+                        self.player = Player(self, j, i)
+                        fix = 'P'
+
+                    elif prev == this['up'] and column == 'š':
+                        self.player = Player(self, j, i)
+                        fix = 'š'
+                    elif prev == this['down'] and column == 'ť':
+                        self.player = Player(self, j, i)
+                        fix = 'ť'
+                    elif prev == this['right'] and column == 'č':
+                        self.player = Player(self, j, i)
+                        fix = 'č'
+                    elif prev == this['left'] and column == 'ľ':
+                        self.player = Player(self, j, i)
+                        fix = 'ľ'
+
+        for sprite in self.all_sprites:
+            sprite.rect.x += config.LEVEL_DICT[config.CURRENT_LEVEL]['cam'][fix]['x1']
+            sprite.rect.x -= config.LEVEL_DICT[config.CURRENT_LEVEL]['cam'][fix]['x2']
+            sprite.rect.y += config.LEVEL_DICT[config.CURRENT_LEVEL]['cam'][fix]['y1']
+            sprite.rect.y -= config.LEVEL_DICT[config.CURRENT_LEVEL]['cam'][fix]['y2']
 
     def animateIn_level(self):
         pygame.mixer.Channel(3).set_volume(0.4)
@@ -154,11 +183,17 @@ class Game:
     def new(self, level):
         self.playing = True
 
+        try:
+            self.discord_presence()
+        except:
+            pass
+
         self.all_sprites = pygame.sprite.LayeredUpdates()
         self.blocks = pygame.sprite.LayeredUpdates()
         self.items = pygame.sprite.LayeredUpdates()
         #self.enemies = pygame.sprite.LayeredUpdates()
         #self.attacks = pygame.sprite.LayeredUpdates()
+        self.key = pygame.sprite.LayeredUpdates()
         self.coinsl = pygame.sprite.LayeredUpdates()
         self.teleport_ud = pygame.sprite.LayeredUpdates()
         self.teleport_rl = pygame.sprite.LayeredUpdates()
@@ -213,8 +248,7 @@ class Game:
         self.running = False
 
     def discord_presence(self):
-        print(self.DP.update(state="Astrocore",
-                             details="Wondering in spaceship"))
+        self.DP.update(details=f"Wandering in {config.LEVEL_DICT[config.CURRENT_LEVEL]['title']}")
 
     def game_over(self):
         pass

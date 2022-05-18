@@ -1,4 +1,4 @@
-import pygame
+import pygame, moviepy.editor
 import random
 import math
 
@@ -11,6 +11,7 @@ class Spritesheet:
     def __init__(self, file):
         self.sheet = pygame.image.load(file).convert()
         self.current_level = CURRENT_LEVEL
+        self.last_level = LAST_LEVEL
 
     def get_sprite(self, x, y, width, height):
         sprite = pygame.Surface([width, height])
@@ -43,6 +44,9 @@ class Player(pygame.sprite.Sprite):
         self.rect.x = self.x
         self.rect.y = self.y
 
+        self.final = False
+        self.shop_message = ""
+
     def update(self):
         self.movement()
         self.animate()
@@ -51,9 +55,11 @@ class Player(pygame.sprite.Sprite):
         self.rect.x += self.x_change
         self.collide_blocks('x')
         self.collide_coin('x')
+        self.collide_final_key('x')
         self.rect.y += self.y_change
         self.collide_blocks('y')
         self.collide_coin('y')
+        self.collide_final_key('y')
 
         self.x_change = 0
         self.y_change = 0
@@ -103,8 +109,10 @@ class Player(pygame.sprite.Sprite):
 
         if rl_hits:
             if LEVEL_DICT[config.CURRENT_LEVEL]['goto'][self.facing] == '':
+                config.LAST_LEVEL = ''
                 config.CURRENT_LEVEL = config.CURRENT_LEVEL
             else:
+                config.LAST_LEVEL = config.CURRENT_LEVEL
                 config.CURRENT_LEVEL = LEVEL_DICT[config.CURRENT_LEVEL]['goto'][self.facing]
 
             new_level_map = LEVEL_DICT[config.CURRENT_LEVEL]['map']
@@ -115,8 +123,10 @@ class Player(pygame.sprite.Sprite):
                 place = 'down'
 
             if LEVEL_DICT[config.CURRENT_LEVEL]['goto'][place] == '':
+                config.LAST_LEVEL = ''
                 config.CURRENT_LEVEL = config.CURRENT_LEVEL
             else:
+                config.LAST_LEVEL = config.CURRENT_LEVEL
                 config.CURRENT_LEVEL = LEVEL_DICT[config.CURRENT_LEVEL]['goto'][place]
 
             new_level_map = LEVEL_DICT[config.CURRENT_LEVEL]['map']
@@ -136,7 +146,23 @@ class Player(pygame.sprite.Sprite):
             if coin_hits:
                 pygame.mixer.Channel(2).play(pygame.mixer.Sound('resources/sounds/get_coin.wav'))
                 pygame.mixer.Channel(2).set_volume(0.2)
-                config.COINS += random.randint(5, 20)
+                config.COINS += random.randint(5, 10)
+
+    def collide_final_key(self, direction):
+        if direction == 'x' or direction == 'y':
+            if config.COINS >= 5000:
+                key_hits = pygame.sprite.spritecollide(self, self.game.key, True)
+            else:
+                key_hits = pygame.sprite.spritecollide(self, self.game.key, False)
+
+            if key_hits:
+                if config.COINS >= 5000:
+                    pygame.mixer.Channel(2).play(pygame.mixer.Sound('resources/sounds/get_coin.wav'))
+                    pygame.mixer.Channel(2).set_volume(0.2)
+                    config.COINS -= 5000
+                    self.final = True
+                else:
+                    self.shop_message = f'You still need {5000 - config.COINS}A$ to buy this.'
 
     def collide_blocks(self, direction):
         if direction == 'x':
@@ -216,6 +242,12 @@ class Player(pygame.sprite.Sprite):
                 if self.animation_loop >= 3:
                     self.animation_loop = 1
 
+        if self.final:
+            pygame.mixer.Channel(1).stop()
+            video = moviepy.editor.VideoFileClip("resources/cutscenes/final.mp4")
+            video.preview()
+            exit(1)
+
 
 class Border(pygame.sprite.Sprite):
     def __init__(self, game, x, y, first, last):
@@ -250,6 +282,25 @@ class Coin(pygame.sprite.Sprite):
 
         coin_texture = Spritesheet(f'resources/img/{random.choice(["coin1", "coin2", "coin3", "coin4"])}.png')
         self.image = coin_texture.get_sprite(-16, -16, self.width, self.height)
+
+        self.rect = self.image.get_rect()
+        self.rect.x = self.x
+        self.rect.y = self.y
+
+class Key(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.game = game
+        self._layer = ITEM_LAYER
+        self.groups = self.game.all_sprites, self.game.key
+        pygame.sprite.Sprite.__init__(self, self.groups)
+
+        self.x = x * TILESIZE
+        self.y = y * TILESIZE
+        self.width = TILESIZE
+        self.height = TILESIZE
+
+        key_texture = Spritesheet(f'resources/img/single.png')
+        self.image = key_texture.get_sprite(0, 0, self.width, self.height)
 
         self.rect = self.image.get_rect()
         self.rect.x = self.x

@@ -1,6 +1,5 @@
 import pygame, time, random, math
-
-from config import *
+from sprites import *
 import config
 
 class Animate:
@@ -12,14 +11,16 @@ class Animate:
 
         self.drawText(f'{config.COINS}A$   *   {config.LEVEL_DICT[config.CURRENT_LEVEL]["title"]}', 32, DARKGREEN, 10, 140)
 
+        if self.player.shop_message != '':
+            self.drawText(f'{self.player.shop_message}', 38, DARKGREEN, 10, 1010)
+            self.player.shop_message = ''
+
 
     def newLevel_animateIn(self):
-        width = 1920 // 2
-
         for i in range(0, 255, 5):
             self.screen.fill(BLACK)
 
-            self.drawText('You found new location!', 42, DARKGREEN, width, 500, config.FONT2, i)
+            self.drawText('You found new location!', 42, DARKGREEN, 960, 500, config.FONT2, i)
 
             pygame.display.update()
             time.sleep(0.0005)
@@ -27,8 +28,8 @@ class Animate:
         for i in range(0, 255, 5):
             self.screen.fill(BLACK)
 
-            self.drawText('You found new location!', 42, DARKGREEN, width, 500, config.FONT2)
-            self.drawText(f'{config.LEVEL_DICT[config.CURRENT_LEVEL]["title"]}', 38, DARKGREEN, width, 560, config.FONT1, i)
+            self.drawText('You found new location!', 42, DARKGREEN, 960, 500, config.FONT2)
+            self.drawText(f'{config.LEVEL_DICT[config.CURRENT_LEVEL]["title"]}', 38, DARKGREEN, 960, 560, config.FONT1, i)
 
             pygame.display.update()
             time.sleep(0.0005)
@@ -36,8 +37,8 @@ class Animate:
         for i in range(255, 0, -5):
             self.screen.fill(BLACK)
 
-            self.drawText('You found new location!', 42, DARKGREEN, width, 500, config.FONT2, i)
-            self.drawText(f'{config.LEVEL_DICT[config.CURRENT_LEVEL]["title"]}', 38, DARKGREEN, width, 560, config.FONT1, i)
+            self.drawText('You found new location!', 42, DARKGREEN, 960, 500, config.FONT2, i)
+            self.drawText(f'{config.LEVEL_DICT[config.CURRENT_LEVEL]["title"]}', 38, DARKGREEN, 960, 560, config.FONT1, i)
 
             pygame.display.update()
             time.sleep(0.0005)
